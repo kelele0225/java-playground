@@ -4,6 +4,23 @@ import junit.framework.Assert;
 
 public class MinimumCostToConnectAllNodes {
 
+	private class UnionFind {
+		int groupCount;
+		int[] parent;
+
+		int find(int p) {
+			return p;
+		}
+
+		boolean connected(int a, int b) {
+			return false;
+		}
+
+		void union(int a, int b) {
+
+		}
+	}
+
 	/**
 	 * Given an undirected graph with n nodes labeled 1..n. Some of the nodes are
 	 * already connected. The i-th edge connects nodes edges[i][0] and edges[i][1]

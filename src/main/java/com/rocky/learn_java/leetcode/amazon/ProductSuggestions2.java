@@ -1,6 +1,11 @@
 package com.rocky.learn_java.leetcode.amazon;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.PriorityQueue;
 
 /**
  * Description: Implement a function to return product suggestions using
@@ -39,64 +44,69 @@ import java.util.*;
  * @author wanglei
  *
  */
-public class ProductSuggestions {
+public class ProductSuggestions2 {
 
-	public static class Trie {
-		Trie[] letters;
-		PriorityQueue<String> repositoryLexicalQueue;
-		boolean wordEnd;
-
-		public Trie() {
-			letters = new Trie[26];
-			repositoryLexicalQueue = new PriorityQueue<>(Collections.reverseOrder());
-			wordEnd = false;
+	class Trie {
+		HashMap<Character, Trie> childs;
+		PriorityQueue<String> repoQueue;
+		Trie() {
+			this.childs = new HashMap<>();
+			this.repoQueue = new PriorityQueue<>((a, b) -> b.compareTo(a));
 		}
-	}
 
-	private static void buildTrie(List<String> repository, Trie root) {
-		for (String product : repository) {
-			product = product.toLowerCase();
-			Trie triePointer = root;
-			for (int i = 0; i < product.length(); i++) {
-				int c = product.charAt(i) - 'a';
-				if (triePointer.letters[c] == null) {
-					triePointer.letters[c] = new Trie();
-				}
-				triePointer = triePointer.letters[c];
-				triePointer.repositoryLexicalQueue.add(product);
-				if (triePointer.repositoryLexicalQueue.size() > 3) {
-					triePointer.repositoryLexicalQueue.poll();
-				}
+		PriorityQueue<String> search(String str) {
+			if(str == null || str.length() ==0) {
+				return null;
 			}
-			triePointer.wordEnd = true;
+			Trie pointer = this;
+			for(char c: str.toCharArray()) {
+				Trie cur = pointer.childs.get(c);
+
+				if(cur == null) {
+					return null;
+				}
+				pointer = cur;
+			}
+			return pointer.repoQueue;
 		}
 	}
 
-	public static List<List<String>> suggestions(int numProducts, List<String> repository, String customerQuery) {
+	private void buildTrie(List<String> repository, Trie root) {
+		repository.forEach(repo -> {
+			repo = repo.toLowerCase();
+			Trie pointer = root;
+			for(char c: repo.toCharArray()) {
+				if(pointer.childs.get(c) == null) {
+					pointer.childs.put(c, new Trie());
+				}
+				Trie next = pointer.childs.get(c);
+				next.repoQueue.offer(repo);
+				if(next.repoQueue.size() > 3) {
+					next.repoQueue.poll();
+				}
+				pointer = next;
+			}
+		});
+	}
+
+	public List<List<String>> suggestions(int numProducts, List<String> repository, String customerQuery) {
 		Trie root = new Trie();
-
-		buildTrie(repository, root);
-
-		List<List<String>> productSuggestions = new ArrayList<>();
-		Trie triePointer = root;
-
+		this.buildTrie(repository, root);
+		List<List<String>> suggestions = new ArrayList<>();
 		customerQuery = customerQuery.toLowerCase();
-		for (int i = 0; i < customerQuery.length(); i++) {
-			int c = customerQuery.charAt(i) - 'a';
-			if (triePointer.letters[c] == null) {
-				break;
-			}
-			triePointer = triePointer.letters[c];
-			if (i > 0 && triePointer.repositoryLexicalQueue.size() != 0) {
-				List<String> suggestions = new ArrayList<>();
-				while (triePointer.repositoryLexicalQueue.isEmpty() == false) {
-					suggestions.add(triePointer.repositoryLexicalQueue.poll());
+		for(int i = 2; i <= customerQuery.length(); i++) {
+			PriorityQueue<String> repoQueue = root.search(customerQuery.substring(0, i));
+			if(repoQueue != null) {
+				PriorityQueue<String> repoQueueCopy = new PriorityQueue<>(repoQueue);
+				List<String> suggestion = new ArrayList<>();
+				while(repoQueueCopy.isEmpty() == false) {
+					suggestion.add(repoQueueCopy.poll());
 				}
-				Collections.reverse(suggestions);
-				productSuggestions.add(suggestions);
+				Collections.reverse(suggestion);
+				suggestions.add(suggestion);
 			}
 		}
-		return productSuggestions;
+		return suggestions;
 	}
 
 	public static void main(String[] args) {
@@ -107,7 +117,7 @@ public class ProductSuggestions {
 		repository.add("moNeypot");
 		repository.add("monitor");
 		repository.add("MOUSEPAD");
-		List<List<String>> l = suggestions(5, repository, "MOUse");
+		List<List<String>> l = new ProductSuggestions2().suggestions(5, repository, "MOUse");
 		for (List<String> ls : l) {
 			System.out.println(Arrays.toString(ls.toArray()));
 		}

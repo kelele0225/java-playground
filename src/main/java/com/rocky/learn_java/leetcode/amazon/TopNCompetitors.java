@@ -50,11 +50,12 @@ public class TopNCompetitors {
 //			ans.add(((Node)minHeap.heap[i]).competitor);
 //		}
 		
-		//用PriorityQueue
+		//use PriorityQueue as minheap
 		PriorityQueue<Map.Entry<String, Integer>> queue = new PriorityQueue<>((a, b) -> 
 			a.getValue() == b.getValue() ? b.getKey().compareTo(a.getKey()) : a.getValue() - b.getValue()
 		);
-		
+
+		// add competitor <-> reviewCount pair into minheap, and poll the heap peek while heap size > N
 		for(Map.Entry<String, Integer> entry: reviewCountMap.entrySet()) {
 			queue.offer(entry);
 			if(queue.size() > topNCompetitors) {
@@ -126,17 +127,18 @@ public class TopNCompetitors {
 		}
 		
 		private void shiftDown(int index) {
-			if(index * 2 + 1 > size - 1) {
+			if(index * 2 + 1 >= size) {
 				return;
 			}
 			int minChildIndex = index * 2 + 1;
-			if(index * 2 + 2 <= size - 1) {
+			if(index * 2 + 2 < size) {
 				minChildIndex = ((E)heap[index * 2 + 1]).compareTo((E)heap[index * 2 + 2]) < 0 ? index * 2 + 1 : index * 2 + 2;
 			}
-			if(((E)heap[index]).compareTo((E)heap[minChildIndex]) > 0) {
-				Object tmp = heap[index];
-				heap[index] = heap[minChildIndex];
-				heap[minChildIndex] = tmp;
+			E minChild = (E)heap[minChildIndex];
+			E self = (E)heap[index];
+			if(self.compareTo(minChild) > 0) {
+				heap[index] = minChild;
+				heap[minChildIndex] = self;
 				this.shiftDown(minChildIndex);
 			}
 		}
